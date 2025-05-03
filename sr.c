@@ -106,40 +106,32 @@ void A_input(struct pkt packet)
     if (TRACE > 0)
       printf("----A: uncorrupted ACK %d is received\n",packet.acknum);
 
-    /* check if new ACK or duplicate */
     if (!acked[packet.acknum]) {
-      /* Determine if this is the first time this ACK has been received */
       if (TRACE > 0)
         printf("----A: ACK %d is not a duplicate\n",packet.acknum);
       new_ACKs++;
       acked[packet.acknum] = true;
 
-            /* cumulative acknowledgement - determine how many packets are ACKed */
-            if (packet.acknum >= seqfirst)
-              ackcount = packet.acknum + 1 - seqfirst;
-            else
-              ackcount = SEQSPACE - seqfirst + packet.acknum;
-
-	    /* slide window by the number of packets ACKed */
-            windowfirst = (windowfirst + ackcount) % WINDOWSIZE;
-
-            /* delete the acked packets from window buffer */
-            for (i=0; i<ackcount; i++)
-              windowcount--;
-
-	          /* start timer again if there are still more unacked packets in window */
-            stoptimer(A);
-            if (windowcount > 0)
-              starttimer(A, RTT);
-
+      /*Attempt to slide the window only if the received ACK is the leftmost (earliest) packet in the window.*/
+      int seq = buffer[windowfirst].seqnum;
+      if (packet.acknum == seq) {
+        while (windowcount > 0) {
+          if (!acked[seq]) break;
+          windowfirst = (windowfirst + 1) % WINDOWSIZE;
+          windowcount--;
           }
-        }
-        else
-          if (TRACE > 0)
-        printf ("----A: duplicate ACK received, do nothing!\n");
+
+	    /* start timer again if there are still more unacked packets in window */
+      stoptimer(A);
+      if (windowcount > 0)
+        starttimer(A, RTT);
+
+    }
   }
-  else
-    if (TRACE > 0)
+      else if (TRACE > 0)
+      printf ("----A: duplicate ACK received, do nothing!\n");
+  }
+  else if (TRACE > 0)
       printf ("----A: corrupted ACK is received, do nothing!\n");
 }
 

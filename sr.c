@@ -172,7 +172,8 @@ void A_init(void)
 /********* Receiver (B)  variables and procedures ************/
 
 static int expectedseqnum; /* the sequence number expected next by the receiver */
-static int B_nextseqnum;   /* the sequence number for the next packets sent by B */
+static struct pkt pkt_r[SEQSPACE]; /* cached array for storing packets received out of order */
+static bool pkt_r_acked[SEQSPACE]; /* to save ACK is recevied or not */
 
 
 /* called from layer 3, when a packet arrives for layer 4 at B*/
@@ -200,10 +201,8 @@ void B_input(struct pkt packet)
     /* packet is corrupted or out of order resend last ACK */
     if (TRACE > 0)
       printf("----B: packet corrupted or not expected sequence number, resend ACK!\n");
-    if (expectedseqnum == 0)
-      sendpkt.acknum = SEQSPACE - 1;
-    else
-      sendpkt.acknum = expectedseqnum - 1;
+    
+
   }
 
   /* create packet */

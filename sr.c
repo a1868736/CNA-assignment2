@@ -97,9 +97,6 @@ void A_output(struct msg message)
 */
 void A_input(struct pkt packet)
 {
-  int ackcount = 0;
-  int i;
-
   /* if received ACK is not corrupted */
   /*ACK of gbn is cumulative (ACK n), but ACK for sr is independent, each pkt has own ACK*/
   if (!IsCorrupted(packet)) {

@@ -101,19 +101,15 @@ void A_input(struct pkt packet)
   int i;
 
   /* if received ACK is not corrupted */
+  /*ACK of gbn is cumulative (ACK n), but ACK for sr is independent, each pkt has own ACK*/
   if (!IsCorrupted(packet)) {
     if (TRACE > 0)
       printf("----A: uncorrupted ACK %d is received\n",packet.acknum);
-    total_ACKs_received++;
 
     /* check if new ACK or duplicate */
     if (windowcount != 0) {
-          int seqfirst = buffer[windowfirst].seqnum;
-          int seqlast = buffer[windowlast].seqnum;
-          /* check case when seqnum has and hasn't wrapped */
-          if (((seqfirst <= seqlast) && (packet.acknum >= seqfirst && packet.acknum <= seqlast)) ||
-              ((seqfirst > seqlast) && (packet.acknum >= seqfirst || packet.acknum <= seqlast))) {
-
+      
+      
             /* packet is a new ACK */
             if (TRACE > 0)
               printf("----A: ACK %d is not a duplicate\n",packet.acknum);
@@ -132,7 +128,7 @@ void A_input(struct pkt packet)
             for (i=0; i<ackcount; i++)
               windowcount--;
 
-	    /* start timer again if there are still more unacked packets in window */
+	          /* start timer again if there are still more unacked packets in window */
             stoptimer(A);
             if (windowcount > 0)
               starttimer(A, RTT);

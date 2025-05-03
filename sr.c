@@ -201,13 +201,14 @@ void B_input(struct pkt packet)
     sendpkt.checksum = ComputeChecksum(sendpkt);
     tolayer3(B, sendpkt);
 
-    /* deliver to receiving application */
-    tolayer5(B, packet.payload);
-
-
-
-    /* update state variables */
-    expectedseqnum = (expectedseqnum + 1) % SEQSPACE;
+    /* Check the cache for packages that can be delivered in order */
+    while (pkt_r_acked[expectedseqnum]) 
+    {
+      tolayer5(B, pkt_r[expectedseqnum].payload);
+      pkt_r_acked[expectedseqnum] = false;
+      /* update state variables */
+      expectedseqnum = (expectedseqnum + 1) % SEQSPACE;
+    }
   }
   else {
     /* packet is corrupted or out of order resend last ACK */

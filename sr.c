@@ -211,26 +211,24 @@ void B_input(struct pkt packet)
     }
   }
   else {
-    /* packet is corrupted or out of order resend last ACK */
+    /* Send ACK even if you receive a damaged package.*/
     if (TRACE > 0)
       printf("----B: packet corrupted or not expected sequence number, resend ACK!\n");
-    
 
+    /* create packet */
+    sendpkt.acknum = packet.seqnum;
+    sendpkt.seqnum = 0;
+
+    /* we don't have any data to send.  fill payload with 0's */
+    for ( i=0; i<20 ; i++ )
+      sendpkt.payload[i] = '.';
+
+    /* computer checksum */
+    sendpkt.checksum = ComputeChecksum(sendpkt);
+
+    /* send out packet */
+    tolayer3 (B, sendpkt);
   }
-
-  /* create packet */
-  sendpkt.seqnum = B_nextseqnum;
-  B_nextseqnum = (B_nextseqnum + 1) % 2;
-
-  /* we don't have any data to send.  fill payload with 0's */
-  for ( i=0; i<20 ; i++ )
-    sendpkt.payload[i] = '0';
-
-  /* computer checksum */
-  sendpkt.checksum = ComputeChecksum(sendpkt);
-
-  /* send out packet */
-  tolayer3 (B, sendpkt);
 }
 
 /* the following routine will be called once (only) before any other */

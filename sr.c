@@ -110,10 +110,9 @@ void A_input(struct pkt packet)
       acked[packet.acknum] = true;
 
       /*Attempt to slide the window only if the received ACK is the leftmost (earliest) packet in the window.*/
-      int seq = buffer[windowfirst].seqnum;
-      if (packet.acknum == seq) {
+      if (packet.acknum == buffer[windowfirst].seqnum) {
         while (windowcount > 0) {
-          if (!acked[seq]) break;
+          if (!acked[buffer[windowfirst].seqnum]) break;
           windowfirst = (windowfirst + 1) % WINDOWSIZE;
           windowcount--;
           }
@@ -135,8 +134,8 @@ void A_input(struct pkt packet)
 /* called when A's timer goes off */
 void A_timerinterrupt(void)
 {
-  if (TRACE > 0)
-    printf("----A: time out,resend packets!\n");
+    if (TRACE > 0)
+      printf("----A: time out,resend packets!\n");
 
     if (TRACE > 0)
       printf ("---A: resending packet %d\n", (buffer[windowfirst]).seqnum);
@@ -236,7 +235,6 @@ void B_input(struct pkt packet)
 void B_init(void)
 {
   expectedseqnum = 0;
-  B_nextseqnum = 1;
 }
 
 /******************************************************************************

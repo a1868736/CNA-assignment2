@@ -16,15 +16,15 @@
    original checksum.  This procedure must generate a different checksum to the original if
    the packet is corrupted.
 */
-int ComputeChecksum(struct pkt packet) //sender create checksum for pkt
+int ComputeChecksum(struct pkt packet) /*sender create checksum for pkt*/
 {
   int checksum = 0;
   int i;
-  //change check method with 16 bit checksum
-  checksum ^= packet.seqnum; //XOR checksum with seqnum
-  checksum ^= packet.acknum; //also do with acknum
+  /*change check method with 16 bit checksum*/
+  checksum ^= packet.seqnum; /*XOR checksum with seqnum*/
+  checksum ^= packet.acknum; /*also do with acknum*/
   for (i = 0; i < 20; ++i) {
-      checksum ^= (packet.payload[i] << ((i % 4) * 8)); //also do with payload data
+      checksum ^= (packet.payload[i] << ((i % 4) * 8)); /*also do with payload data*/
   }
 
   return checksum;

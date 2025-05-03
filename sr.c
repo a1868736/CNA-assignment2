@@ -194,15 +194,17 @@ void B_input(struct pkt packet)
       pkt_r_acked[packet.seqnum] = true;
     }
 
+    /* send an ACK for the received packet */
+    sendpkt.acknum = expectedseqnum;
+    sendpkt.seqnum = 0;
+    for (i = 0; i < 20; i++) sendpkt.payload[i] = '.';
+    sendpkt.checksum = ComputeChecksum(sendpkt);
+    tolayer3(B, sendpkt);
+
     /* deliver to receiving application */
     tolayer5(B, packet.payload);
 
 
-
-
-    /* send an ACK for the received packet */
-    sendpkt.acknum = expectedseqnum;
-    sendpkt.seqnum = 0;
 
     /* update state variables */
     expectedseqnum = (expectedseqnum + 1) % SEQSPACE;

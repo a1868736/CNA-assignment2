@@ -114,8 +114,9 @@ void A_input(struct pkt packet)
 
       /*Attempt to slide the window only if the received ACK is the leftmost (earliest) packet in the window.*/
       if (packet.acknum == buffer[windowfirst].seqnum) {
+        /*this part has something wrong, need fix*/
         while (windowcount > 0) {
-          if (!acked[buffer[windowfirst].seqnum]) break;
+          /*if (!acked[buffer[windowfirst].seqnum]) break;*/
           windowfirst = (windowfirst + 1) % WINDOWSIZE;
           windowcount--;
           }

@@ -46,7 +46,7 @@ static struct pkt buffer[WINDOWSIZE];  /* array for storing packets waiting for 
 static int windowfirst, windowlast;    /* array indexes of the first/last packet awaiting ACK */
 static int windowcount;                /* the number of packets currently awaiting an ACK */
 static int A_nextseqnum;               /* the next sequence number to be used by the sender */
-static bool acked[WINDOWSIZE];         /* array for ACK to check which pkt already ACKed */
+static bool acked[SEQSPACE];         /* array for ACK to check which pkt already ACKed */
 
 /* called from layer 5 (application layer), passed the message to be sent to other side */
 void A_output(struct msg message)
@@ -191,13 +191,13 @@ void B_input(struct pkt packet)
       printf("----B: packet %d is correctly received, send ACK!\n",packet.seqnum);
     packets_received++;
 
-    /*Cache unreceived packets in the receive window*/
+    /*Cache received packets if its 1st time*/
     if (!pkt_r_acked[packet.seqnum]) {
       pkt_r[packet.seqnum] = packet;
       pkt_r_acked[packet.seqnum] = true;
     }
 
-    /* send an ACK for the received packet */
+    /* send an ACK back */
     sendpkt.acknum = packet.seqnum;
     sendpkt.seqnum = 0;
     for (i = 0; i < 20; i++) sendpkt.payload[i] = '.';

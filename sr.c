@@ -30,6 +30,7 @@ int ComputeChecksum(struct pkt packet) /*sender create checksum for pkt*/
   return checksum;
 }
 
+/*if the current packet checksum is not same as the original, it is corrupted*/
 bool IsCorrupted(struct pkt packet)
 {
   if (packet.checksum == ComputeChecksum(packet))
@@ -53,7 +54,7 @@ void A_output(struct msg message)
   struct pkt sendpkt;
   int i;
 
-  /* if not blocked waiting on ACK */
+  /* if not blocked wait ACK */
   if ( windowcount < WINDOWSIZE) {
     if (TRACE > 1)
       printf("----A: New message arrives, send window is not full, send new messge to layer3!\n");
@@ -61,12 +62,13 @@ void A_output(struct msg message)
     /* create packet */
     sendpkt.seqnum = A_nextseqnum;
     sendpkt.acknum = NOTINUSE;
+
+    /*check sum*/
     for ( i=0; i<20 ; i++ )
       sendpkt.payload[i] = message.data[i];
     sendpkt.checksum = ComputeChecksum(sendpkt);
 
-    /* put packet in window buffer */
-    /* windowlast will always be 0 for alternating bit; but not for GoBackN */
+    /* put pkt in buffer, update */
     windowlast = (windowlast + 1) % WINDOWSIZE;
     buffer[windowlast] = sendpkt;
     windowcount++;
@@ -97,12 +99,13 @@ void A_output(struct msg message)
 */
 void A_input(struct pkt packet)
 {
-  /* if received ACK is not corrupted */
+
   /*ACK of gbn is cumulative (ACK n), but ACK for sr is independent, each pkt has own ACK*/
   if (!IsCorrupted(packet)) {
     if (TRACE > 0)
       printf("----A: uncorrupted ACK %d is received\n",packet.acknum);
 
+    /*check received ACK corrupted & got before or not */
     if (!acked[packet.acknum]) {
       if (TRACE > 0)
         printf("----A: ACK %d is not a duplicate\n",packet.acknum);
@@ -117,7 +120,7 @@ void A_input(struct pkt packet)
           windowcount--;
           }
 
-	    /* start timer again if there are still more unacked packets in window */
+	    /* stop or start if still have pkt not ACKed */
       stoptimer(A);
       if (windowcount > 0)
         starttimer(A, RTT);
@@ -144,6 +147,7 @@ void A_timerinterrupt(void)
     tolayer3(A,buffer[windowfirst]); 
     packets_resent++;
 
+    /* same above*/
     if (windowcount > 0) {
       starttimer(A, RTT);
     }

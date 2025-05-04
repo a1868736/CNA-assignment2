@@ -194,7 +194,7 @@ void B_input(struct pkt packet)
     }
 
     /* send an ACK for the received packet */
-    sendpkt.acknum = expectedseqnum;
+    sendpkt.acknum = packet.seqnum;
     sendpkt.seqnum = 0;
     for (i = 0; i < 20; i++) sendpkt.payload[i] = '.';
     sendpkt.checksum = ComputeChecksum(sendpkt);

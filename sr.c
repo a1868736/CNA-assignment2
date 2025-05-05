@@ -46,7 +46,7 @@ static struct pkt buffer[WINDOWSIZE];  /* array for storing packets waiting for 
 static int windowfirst, windowlast;    /* array indexes of the first/last packet awaiting ACK */
 static int windowcount;                /* the number of packets currently awaiting an ACK */
 static int A_nextseqnum;               /* the next sequence number to be used by the sender */
-static bool acked[SEQSPACE];         /* array for ACK to check which pkt already ACKed */
+static bool ack_check[SEQSPACE];       /* array for ACK to check which pkt already ACKed */
 
 /* called from layer 5 (application layer), passed the message to be sent to other side */
 void A_output(struct msg message)
@@ -106,16 +106,15 @@ void A_input(struct pkt packet)
       printf("----A: uncorrupted ACK %d is received\n",packet.acknum);
 
     /*check received ACK corrupted & got before or not */
-    if (!acked[packet.acknum]) {
+    if (!ack_check[packet.acknum]) {
       if (TRACE > 0)
         printf("----A: ACK %d is not a duplicate\n",packet.acknum);
       new_ACKs++;
-      acked[packet.acknum] = true;
+      ack_check[packet.acknum] = true;
 
       /*Attempt to slide the window only if the received ACK is the leftmost (earliest) packet in the window.*/
       if (packet.acknum == buffer[windowfirst].seqnum) {
-        /*this part has something wrong, need fix*/
-        while (windowcount > 0 && acked[buffer[windowfirst].seqnum]) {
+        while (windowcount > 0 && ack_check[buffer[windowfirst].seqnum]) {
           windowfirst = (windowfirst + 1) % WINDOWSIZE;
           windowcount--;
           }
